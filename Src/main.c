@@ -40,6 +40,7 @@ void SystemClock_Config(void);
 //------------------------------------------------------------------------
 // Global variables set externally
 //------------------------------------------------------------------------
+extern TIM_HandleTypeDef htim_sound;
 extern TIM_HandleTypeDef htim_left;
 extern TIM_HandleTypeDef htim_right;
 extern ADC_HandleTypeDef hadc1;
@@ -169,6 +170,16 @@ static uint16_t rate = RATE; // Adjustable rate to support multiple drive modes 
   static uint16_t max_speed;
 #endif
 
+void setSoundPWM(uint16_t speed) {
+  // Set sound PWM frequency and duty cycle based on speed
+  // Middle of the range  (64000000 / 2 / 50)/20
+  uint8_t max_duty = 64000;
+  uint8_t min_duty = 32000;
+
+  uint8_t duty = min_duty + ((max_duty - min_duty) * speed) / max_speed;
+  __HAL_TIM_SET_COMPARE(&htim_sound, TIM_CHANNEL_1, duty);
+
+}
 
 int main(void) {
 
@@ -337,6 +348,9 @@ int main(void) {
         } else {
           speed = steer - speed;                // Reverse driving: in this case steer = Brake, speed = Throttle
         }
+        //TODO: call function to set PWM for sound control
+        setSoundPWM((uint16_t)ABS(speed));
+
         steer = 0;                              // Do not apply steering to avoid side effects if STEER_COEFFICIENT is NOT 0
       }
       #endif

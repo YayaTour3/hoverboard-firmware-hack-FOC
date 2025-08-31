@@ -39,6 +39,7 @@ pb10 usart3 dma1 channel2/3
 #include "config.h"
 #include "setup.h"
 
+TIM_HandleTypeDef htim_sound;
 TIM_HandleTypeDef htim_right;
 TIM_HandleTypeDef htim_left;
 ADC_HandleTypeDef hadc1;
@@ -494,6 +495,41 @@ void MX_TIM_Init(void) {
   TIM_OC_InitTypeDef sConfigOC;
   TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig;
   TIM_SlaveConfigTypeDef sTimConfig;
+  
+  // Begin init TIMER for sound generation //
+  // TODO Init htim_sound here too
+  htim_sound.Instance               = SOUND_TIM;
+  htim_sound.Init.Prescaler         = 0;
+  htim_sound.Init.CounterMode       = TIM_COUNTERMODE_UP;//TIM_COUNTERMODE_CENTERALIGNED1;
+  htim_sound.Init.Period            = 64000000 / 2 / 50;// FREQ = 50 Hz (20ms) 
+  htim_sound.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
+  htim_sound.Init.RepetitionCounter = 0;
+  htim_sound.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE; // Enable buffering, to avoid glitches on duty cycle change
+  HAL_TIM_PWM_Init(&htim_sound);
+
+  //sMasterConfig.MasterOutputTrigger = TIM_TRGO_ENABLE;
+  //sMasterConfig.MasterSlaveMode     = TIM_MASTERSLAVEMODE_DISABLE;
+  //HAL_TIMEx_MasterConfigSynchronization(&htim_sound, &sMasterConfig);
+
+  sConfigOC.OCMode       = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse        = 32000; // Min Pulse  (64000000 / 2 / 50)/20 =
+  sConfigOC.OCPolarity   = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity  = TIM_OCNPOLARITY_LOW;
+  sConfigOC.OCFastMode   = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState  = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_SET;
+  HAL_TIM_PWM_ConfigChannel(&htim_sound, &sConfigOC, TIM_CHANNEL_2);
+  HAL_TIM_PWM_ConfigChannel(&htim_sound, &sConfigOC, TIM_CHANNEL_4);
+
+  sBreakDeadTimeConfig.OffStateRunMode  = TIM_OSSR_ENABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_ENABLE;
+  sBreakDeadTimeConfig.LockLevel        = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime         = DEAD_TIME;
+  sBreakDeadTimeConfig.BreakState       = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity    = TIM_BREAKPOLARITY_LOW;
+  sBreakDeadTimeConfig.AutomaticOutput  = TIM_AUTOMATICOUTPUT_DISABLE;
+  HAL_TIMEx_ConfigBreakDeadTime(&htim_sound, &sBreakDeadTimeConfig);
+  // End init TIMER for sound generation //
 
   htim_right.Instance               = RIGHT_TIM;
   htim_right.Init.Prescaler         = 0;
@@ -569,6 +605,7 @@ void MX_TIM_Init(void) {
   sBreakDeadTimeConfig.AutomaticOutput  = TIM_AUTOMATICOUTPUT_DISABLE;
   HAL_TIMEx_ConfigBreakDeadTime(&htim_left, &sBreakDeadTimeConfig);
 
+
   LEFT_TIM->BDTR &= ~TIM_BDTR_MOE;
   RIGHT_TIM->BDTR &= ~TIM_BDTR_MOE;
 
@@ -587,6 +624,8 @@ void MX_TIM_Init(void) {
   HAL_TIMEx_PWMN_Start(&htim_right, TIM_CHANNEL_3);
 
   htim_left.Instance->RCR = 1;
+
+  __HAL_TIM_ENABLE(&htim_sound);
 
   __HAL_TIM_ENABLE(&htim_right);
 }
