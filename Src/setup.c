@@ -518,8 +518,8 @@ void MX_TIM_Init(void) {
   sConfigOC.OCFastMode   = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState  = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_SET;
-  HAL_TIM_PWM_ConfigChannel(&htim_sound, &sConfigOC, TIM_CHANNEL_2);
-  HAL_TIM_PWM_ConfigChannel(&htim_sound, &sConfigOC, TIM_CHANNEL_4);
+  HAL_TIM_PWM_ConfigChannel(&htim_sound, &sConfigOC, TIM_CHANNEL_3);
+//  HAL_TIM_PWM_ConfigChannel(&htim_sound, &sConfigOC, TIM_CHANNEL_4);
 
   sBreakDeadTimeConfig.OffStateRunMode  = TIM_OSSR_ENABLE;
   sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_ENABLE;

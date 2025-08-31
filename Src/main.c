@@ -177,7 +177,7 @@ void setSoundPWM(uint16_t speed) {
   uint8_t min_duty = 32000;
 
   uint8_t duty = min_duty + ((max_duty - min_duty) * speed) / max_speed;
-  __HAL_TIM_SET_COMPARE(&htim_sound, TIM_CHANNEL_1, duty);
+  __HAL_TIM_SET_COMPARE(&htim_sound, TIM_CHANNEL_3, duty);
 
 }
 
